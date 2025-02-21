@@ -8,7 +8,7 @@ Please use:
 - Page Object Pattern
 - Chrome webdriver
 
-Deliver code as pull request to this repository (please remember that on github you need to fork repo first).
+Deliver code as a pull request to this repository (please remember that on github you need to fork repo first).
 
 ### SCENARIO 1
 	1. Go to www.dulux.co.uk
