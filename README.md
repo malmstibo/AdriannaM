@@ -1,6 +1,5 @@
 # Stibo recruitment task as QA Test Engineer
-Hello Adrianna! This is a Stibo recruitment task as QA Test Engineer.
-This is template for coding task to be done for interview
+This is template for coding task to be done for an interview
 
 ## TASK
 Write an automated tests to cover the following scenarios.
