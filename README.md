@@ -2,7 +2,7 @@
 This is template for coding task to be done for an interview
 
 ## TASK
-Write an automated tests to cover the following scenarios.
+Write automated tests to cover the following scenarios.
 Please use:
 - Selenium and Java,
 - Page Object Pattern
