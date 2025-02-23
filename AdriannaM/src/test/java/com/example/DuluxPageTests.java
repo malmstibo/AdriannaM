@@ -1,5 +1,7 @@
 package com.example;
 
+import com.example.pages.DuluxHomePage;
+import com.example.pages.SearchResultPage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -21,18 +23,16 @@ import java.util.Set;
 public class DuluxPageTests {
 
 
+    private DuluxHomePage duluxHomePage;
     private WebDriver driver;
-    private static WebDriverWait wait;
+    private WebDriverWait wait;
 
     @BeforeEach
     public void setUp() {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
-        driver.get("https://www.dulux.co.uk/");
         driver.manage().window().setSize(new Dimension(1300, 1300));
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-
-        acceptCookiesIfPresent(driver);
+        driver.get("https://www.dulux.co.uk/");
     }
 
     @AfterEach
@@ -44,18 +44,20 @@ public class DuluxPageTests {
 
     @Test
     public void shouldOpenVisualizerAppInNewTabWhenClickedFromColorPage() {
-        //1. On page www.dulux.co.uk search for any color in the search engine e.g. "Gentle Lavender" and go to the given colour page
-        WebElement search = driver.findElement(By.cssSelector("[aria-label='Search']"));
-        search.click();
+        duluxHomePage = new DuluxHomePage(driver);
+        String color = "Gentle Lavender";
 
-        WebElement searchBox = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("input[placeholder='Search For']")));
-        searchBox.sendKeys("Gentle Lavender");
-        searchBox.submit();
+        duluxHomePage.acceptCookiesIfPresent();
+        SearchResultPage searchResultPage = duluxHomePage.searchForColor(color);
+        
+        searchResultPage.clickTryVisualizerApp();
 
-        //2. And from the color page go to "Try our Visualizer App" and verify that it opened in a new tab.
-        WebElement visualizerLink = wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("a.a122-primary-button.is-small.visualizer-desktop-link")));
-        visualizerLink.click();
+        Set<String> windowUrls = getWindowUrls();
+        Assertions.assertTrue(windowUrls.stream()
+                .anyMatch(url -> url.contains("dulux-visualizer-app")), "New tab has not been open");
+    }
 
+    private Set<String> getWindowUrls() {
         Set<String> windowHandles = driver.getWindowHandles();
         Set<String> windowUrls = new HashSet<>();
 
@@ -63,16 +65,6 @@ public class DuluxPageTests {
             driver.switchTo().window(handle);
             windowUrls.add(driver.getCurrentUrl());
         }
-
-        boolean visualiser = windowUrls.stream()
-                .anyMatch(url -> url.contains("dulux-visualizer-app"));
-        Assertions.assertTrue(visualiser, "New tab has not been open");
-    }
-
-    private void acceptCookiesIfPresent(WebDriver driver) {
-        WebElement acceptButton = driver.findElement(By.cssSelector("#onetrust-accept-btn-handler"));
-        if (acceptButton.isDisplayed()) {
-            acceptButton.click();
-        }
+        return windowUrls;
     }
 }
