@@ -1,31 +1,25 @@
 package com.example;
 
+import com.example.pages.CartPage;
+import com.example.pages.ColorDetailsPage;
 import com.example.pages.DuluxHomePage;
-import com.example.pages.SearchResultPage;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 public class DuluxPageTests {
-
-
     private DuluxHomePage duluxHomePage;
     private WebDriver driver;
-    private WebDriverWait wait;
+    private static final String GENTLE_LAVENDER = "Gentle Lavender";
 
     @BeforeEach
     public void setUp() {
@@ -33,6 +27,9 @@ public class DuluxPageTests {
         driver = new ChromeDriver();
         driver.manage().window().setSize(new Dimension(1300, 1300));
         driver.get("https://www.dulux.co.uk/");
+
+        duluxHomePage = new DuluxHomePage(driver);
+        duluxHomePage.acceptCookiesIfPresent();
     }
 
     @AfterEach
@@ -43,17 +40,34 @@ public class DuluxPageTests {
     }
 
     @Test
-    public void shouldOpenVisualizerAppInNewTabWhenClickedFromColorPage() {
-        duluxHomePage = new DuluxHomePage(driver);
-        String color = "Gentle Lavender";
+    public void shouldAddColorToCartWhenTesterBought() {
+        duluxHomePage.expandFindAColourDropdownOnHover();
+        ColorDetailsPage colourDetailsPage = duluxHomePage.clickOnFindAColourDropdownOption();
 
-        duluxHomePage.acceptCookiesIfPresent();
-        SearchResultPage searchResultPage = duluxHomePage.searchForColor(color);
-        
-        searchResultPage.clickTryVisualizerApp();
+        String violet = "Violet";
+        colourDetailsPage.pickColor(violet);
+        colourDetailsPage.clickOnColor(GENTLE_LAVENDER);
+
+        assertTrue(colourDetailsPage.assertColorOpened(GENTLE_LAVENDER),
+                String.format("%s has not been opened", GENTLE_LAVENDER));
+
+        colourDetailsPage.clickOnBuyATester();
+        colourDetailsPage.verifyCartItemAmount(1);
+
+        CartPage cartPage = duluxHomePage.clickOnCart();
+
+        assertTrue(cartPage.assertColorAdded(GENTLE_LAVENDER),
+                String.format("%s tester has not been added to cart", GENTLE_LAVENDER));
+    }
+
+    @Test
+    public void shouldOpenVisualizerAppInNewTabWhenClickedFromColorPage() {
+        ColorDetailsPage colourDetailsPage = duluxHomePage.searchForAndSelectColorByName(GENTLE_LAVENDER);
+
+        colourDetailsPage.clickOnTryVisualizerApp();
 
         Set<String> windowUrls = getWindowUrls();
-        Assertions.assertTrue(windowUrls.stream()
+        assertTrue(windowUrls.stream()
                 .anyMatch(url -> url.contains("dulux-visualizer-app")), "New tab has not been open");
     }
 
